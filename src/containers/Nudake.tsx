@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
+import throttle from "lodash/throttle";
 import "../style/containers/Nudake.css";
 import image1 from "../assets/nudake-1.jpg";
 import image2 from "../assets/nudake-2.jpg";
 import image3 from "../assets/nudake-3.jpg";
-import { getAngle, getDistance } from "../utils/utils";
+import { getAngle, getDistance, getScrupedPercent } from "../utils/utils";
 
 const Nudake = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -11,7 +12,7 @@ const Nudake = () => {
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const canvasParent = canvas.parentNode as HTMLElement;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
     let canvasWidth: number, canvasHeight: number;
 
     const imageSrcs: string[] = [image1, image2, image3];
@@ -55,6 +56,7 @@ const Nudake = () => {
 
     function onMouseMove(e: MouseEvent) {
       drawCircles(e);
+      checkPercent();
     }
 
     function drawCircles(e: MouseEvent) {
@@ -75,6 +77,11 @@ const Nudake = () => {
 
       prevPos = nextPos;
     }
+
+    const checkPercent = throttle(() => {
+      const percent = getScrupedPercent(ctx, canvasWidth, canvasHeight);
+      console.log(percent);
+    }, 500); // 0.5초마다 실행
 
     canvas.addEventListener("mousedown", onMouseDown);
     window.addEventListener("resize", resize);
