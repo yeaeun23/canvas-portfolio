@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import throttle from "lodash/throttle";
+import gsap from "gsap";
 import "../style/containers/Nudake.css";
 import image1 from "../assets/nudake-1.jpg";
 import image2 from "../assets/nudake-2.jpg";
@@ -20,7 +21,8 @@ const Nudake = () => {
     const loadedImages: HTMLImageElement[] = [];
     let currIndex: number = 0;
 
-    let prevPos: { x: number; y: number } = { x: 0, y: 0 };
+    let prevPos: { x: number; y: number } | null = { x: 0, y: 0 };
+    let isChanging: boolean = false;
 
     function resize() {
       canvasWidth = canvasParent.clientWidth;
@@ -52,18 +54,31 @@ const Nudake = () => {
     }
 
     function drawImage() {
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-      ctx.globalCompositeOperation = "source-over"; // 기본값으로 초기화
+      isChanging = true;
 
       const image: HTMLImageElement = loadedImages[currIndex];
-      Utils.drawImageCenter(canvas, ctx, image);
-      //ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+      const firstDrawing: boolean = ctx.globalCompositeOperation === "source-over";
 
-      const nextImage: string = imageSrcs[(currIndex + 1) % imageSrcs.length];
-      canvasParent.style.backgroundImage = `url(${nextImage})`;
+      gsap.to(canvas, {
+        opacity: 0,
+        duration: firstDrawing ? 0 : 1,
+        onComplete: () => {
+          canvas.style.opacity = "1";
+          ctx.globalCompositeOperation = "source-over"; // 기본값으로 초기화
+          Utils.drawImageCenter(canvas, ctx, image);
+
+          const nextImage: string = imageSrcs[(currIndex + 1) % imageSrcs.length];
+          canvasParent.style.backgroundImage = `url(${nextImage})`;
+          prevPos = null; // 초기화
+
+          isChanging = false;
+        },
+      });
     }
 
     function onMouseDown(e: MouseEvent) {
+      if (isChanging) return;
+
       canvas.addEventListener("mouseup", onMouseUp);
       canvas.addEventListener("mouseleave", onMouseUp);
       canvas.addEventListener("mousemove", onMouseMove);
@@ -78,12 +93,16 @@ const Nudake = () => {
     }
 
     function onMouseMove(e: MouseEvent) {
+      if (isChanging) return;
+
       drawCircles(e);
       checkPercent();
     }
 
     function drawCircles(e: MouseEvent) {
       const nextPos: { x: number; y: number } = { x: e.offsetX, y: e.offsetY };
+      if (!prevPos) prevPos = nextPos;
+
       const dist: number = Utils.getDistance(prevPos, nextPos);
       const angle: number = Utils.getAngle(prevPos, nextPos);
 
@@ -103,7 +122,6 @@ const Nudake = () => {
 
     const checkPercent = throttle(() => {
       const percent = Utils.getScrupedPercent(ctx, canvasWidth, canvasHeight);
-      console.log(percent);
 
       if (percent > 50) {
         currIndex = (currIndex + 1) % imageSrcs.length;
