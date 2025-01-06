@@ -12,11 +12,14 @@ const Nudake = () => {
   useEffect(() => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const canvasParent = canvas.parentNode as HTMLElement;
+
     const ctx = canvas.getContext("2d", { willReadFrequently: true }) as CanvasRenderingContext2D;
     let canvasWidth: number, canvasHeight: number;
 
     const imageSrcs: string[] = [image1, image2, image3];
+    const loadedImages: HTMLImageElement[] = [];
     let currIndex: number = 0;
+
     let prevPos: { x: number; y: number } = { x: 0, y: 0 };
 
     function resize() {
@@ -27,22 +30,37 @@ const Nudake = () => {
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
 
-      drawImage();
+      preloadImages().then(() => drawImage());
+    }
+
+    function preloadImages(): Promise<void> {
+      return new Promise((resolve) => {
+        let loaded = 0;
+
+        imageSrcs.forEach((src: string) => {
+          const img: HTMLImageElement = new Image();
+          img.src = src;
+
+          img.onload = () => {
+            loaded += 1;
+            loadedImages.push(img);
+
+            if (loaded === imageSrcs.length) return resolve();
+          };
+        });
+      });
     }
 
     function drawImage() {
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+      ctx.globalCompositeOperation = "source-over"; // 기본값으로 초기화
 
-      const image = new Image();
-      image.src = imageSrcs[currIndex];
-      image.onload = () => {
-        ctx.globalCompositeOperation = "source-over"; // 기본값으로 초기화
-        //ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
-        Utils.drawImageCenter(canvas, ctx, image);
+      const image: HTMLImageElement = loadedImages[currIndex];
+      Utils.drawImageCenter(canvas, ctx, image);
+      //ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
 
-        const nextImage = imageSrcs[(currIndex + 1) % imageSrcs.length];
-        canvasParent.style.backgroundImage = `url(${nextImage})`;
-      };
+      const nextImage: string = imageSrcs[(currIndex + 1) % imageSrcs.length];
+      canvasParent.style.backgroundImage = `url(${nextImage})`;
     }
 
     function onMouseDown(e: MouseEvent) {
