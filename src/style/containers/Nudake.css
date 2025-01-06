@@ -5,6 +5,11 @@
   align-items: center;
   justify-content: center;
   position: relative;
+
+  /* 배경 이미지 */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .nudake > canvas {

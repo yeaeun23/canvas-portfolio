@@ -4,7 +4,7 @@ import "../style/containers/Nudake.css";
 import image1 from "../assets/nudake-1.jpg";
 import image2 from "../assets/nudake-2.jpg";
 import image3 from "../assets/nudake-3.jpg";
-import { getAngle, getDistance, getScrupedPercent } from "../utils/utils";
+import * as Utils from "../utils/utils";
 
 const Nudake = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -36,7 +36,12 @@ const Nudake = () => {
       const image = new Image();
       image.src = imageSrcs[currIndex];
       image.onload = () => {
-        ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+        ctx.globalCompositeOperation = "source-over"; // 기본값으로 초기화
+        //ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+        Utils.drawImageCenter(canvas, ctx, image);
+
+        const nextImage = imageSrcs[(currIndex + 1) % imageSrcs.length];
+        canvasParent.style.backgroundImage = `url(${nextImage})`;
       };
     }
 
@@ -61,8 +66,8 @@ const Nudake = () => {
 
     function drawCircles(e: MouseEvent) {
       const nextPos: { x: number; y: number } = { x: e.offsetX, y: e.offsetY };
-      const dist: number = getDistance(prevPos, nextPos);
-      const angle: number = getAngle(prevPos, nextPos);
+      const dist: number = Utils.getDistance(prevPos, nextPos);
+      const angle: number = Utils.getAngle(prevPos, nextPos);
 
       for (let i: number = 0; i < dist; i++) {
         const x = prevPos.x + Math.cos(angle) * i;
@@ -70,7 +75,7 @@ const Nudake = () => {
 
         ctx.globalCompositeOperation = "destination-out";
         ctx.beginPath();
-        ctx.arc(x, y, 50, 0, Math.PI * 2);
+        ctx.arc(x, y, canvasWidth / 15, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
       }
@@ -79,8 +84,13 @@ const Nudake = () => {
     }
 
     const checkPercent = throttle(() => {
-      const percent = getScrupedPercent(ctx, canvasWidth, canvasHeight);
+      const percent = Utils.getScrupedPercent(ctx, canvasWidth, canvasHeight);
       console.log(percent);
+
+      if (percent > 50) {
+        currIndex = (currIndex + 1) % imageSrcs.length;
+        drawImage();
+      }
     }, 500); // 0.5초마다 실행
 
     canvas.addEventListener("mousedown", onMouseDown);
