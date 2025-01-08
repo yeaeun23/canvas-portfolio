@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Composite, Engine, Render, Runner, Mouse, MouseConstraint, Bodies } from "matter-js";
+import {
+  Composite,
+  Engine,
+  Render,
+  Runner,
+  Mouse,
+  MouseConstraint,
+  Bodies,
+  Events,
+} from "matter-js";
 import "../style/containers/RotateCanvas.css";
 import IconAFRAME from "../assets/icon_AFRAME.png";
 import IconCSS from "../assets/icon_CSS.png";
@@ -51,6 +60,8 @@ const RotateCanvas = () => {
     const canvas = canvasRef.current as HTMLCanvasElement;
     const cw: number = 1000;
     const ch: number = 1000;
+    const gravityPower: number = 0.5; // =radius
+    let gravityDeg: number = 0;
     let engine: Engine,
       render: Render,
       runner: Runner,
@@ -61,6 +72,20 @@ const RotateCanvas = () => {
     initMouse();
     initGround();
     initImageBoxes();
+
+    // 마우스 클릭 시 데이터 변경
+    Events.on(mouseConstraint, "mousedown", () => {
+      const newSelected: { title: string; level: number; desc: string } =
+        mouseConstraint.body && data[mouseConstraint.body.label];
+      newSelected && setSelected(newSelected);
+    });
+
+    // 이미지 박스 회전
+    Events.on(runner, "tick", () => {
+      gravityDeg += 1;
+      engine.world.gravity.x = gravityPower * Math.cos((Math.PI / 180) * gravityDeg); // -1~1
+      engine.world.gravity.y = gravityPower * Math.sin((Math.PI / 180) * gravityDeg); // -1~1
+    });
 
     function initScene() {
       engine = Engine.create();
@@ -106,26 +131,32 @@ const RotateCanvas = () => {
       const t2: { w: number; h: number } = { w: 732 * scale, h: 144 * scale };
 
       addRect(cw / 2, ch / 2, t1.w, t1.h, {
+        label: "JS",
         chamfer: { radius: 20 },
         render: { sprite: { texture: IconJS, xScale: scale, yScale: scale } },
       });
       addRect(cw / 2 - t1.w, ch / 2, t1.w, t1.h, {
+        label: "CSS",
         chamfer: { radius: 20 },
         render: { sprite: { texture: IconCSS, xScale: scale, yScale: scale } },
       });
       addRect(cw / 2 + t1.w, ch / 2, t1.w, t1.h, {
+        label: "HTML",
         chamfer: { radius: 20 },
         render: { sprite: { texture: IconHTML, xScale: scale, yScale: scale } },
       });
       addRect(cw / 2, ch / 2 + t1.h, t1.w, t1.h, {
+        label: "THREE",
         chamfer: { radius: 20 },
         render: { sprite: { texture: IconTHREE, xScale: scale, yScale: scale } },
       });
       addRect(cw / 2 - t1.w, ch / 2 + t1.h, t1.w, t1.h, {
+        label: "REACT",
         chamfer: { radius: 75 },
         render: { sprite: { texture: IconREACT, xScale: scale, yScale: scale } },
       });
       addRect(cw / 2, ch / 2 - t2.h, t2.w, t2.h, {
+        label: "AFRAME",
         chamfer: { radius: 20 },
         render: { sprite: { texture: IconAFRAME, xScale: scale, yScale: scale } },
       });
