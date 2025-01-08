@@ -1,8 +1,50 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Composite, Engine, Render, Runner, Mouse, MouseConstraint, Bodies } from "matter-js";
 import "../style/containers/RotateCanvas.css";
+import IconAFRAME from "../assets/icon_AFRAME.png";
+import IconCSS from "../assets/icon_CSS.png";
+import IconHTML from "../assets/icon_HTML.png";
+import IconJS from "../assets/icon_JS.png";
+import IconREACT from "../assets/icon_REACT.png";
+import IconTHREE from "../assets/icon_THREE.png";
+
+const data: { [key: string]: { title: string; level: number; desc: string } } = {
+  JS: {
+    title: "Javascript",
+    level: 4,
+    desc: "자바스크립트에 대한 설명이라고 할 수 있습니다. 자바스크립트에 대한 설명. 자바스크립트에 대한 설명.",
+  },
+  REACT: {
+    title: "React.js",
+    level: 5,
+    desc: "React에 대한 설명이라고 할 수 있습니다. React에 대한 설명. React에 대한 설명.",
+  },
+  CSS: {
+    title: "CSS/SASS",
+    level: 3,
+    desc: "CSS에 대한 설명이라고 할 수 있습니다. CSS에 대한 설명. CSS에 대한 설명.",
+  },
+  AFRAME: {
+    title: "Aframe.js",
+    level: 4,
+    desc: "AFRAME에 대한 설명이라고 할 수 있습니다. AFRAME에 대한 설명. AFRAME에 대한 설명.",
+  },
+  THREE: {
+    title: "Three.js",
+    level: 2,
+    desc: "THREE에 대한 설명이라고 할 수 있습니다. THREE에 대한 설명. THREE에 대한 설명.",
+  },
+  HTML: {
+    title: "HTML",
+    level: 5,
+    desc: "HTML에 대한 설명이라고 할 수 있습니다. HTML에 대한 설명. HTML에 대한 설명.",
+  },
+};
 
 const RotateCanvas = () => {
+  const [selected, setSelected] = useState<{ title: string; level: number; desc: string }>(
+    data["JS"]
+  );
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -18,15 +60,7 @@ const RotateCanvas = () => {
     initScene();
     initMouse();
     initGround();
-
-    // 마우스 휠 이벤트
-    canvas.addEventListener(
-      "wheel",
-      () => {
-        addRect(mouse.position.x, mouse.position.y, 50, 50);
-      },
-      { passive: true }
-    );
+    initImageBoxes();
 
     function initScene() {
       engine = Engine.create();
@@ -44,9 +78,7 @@ const RotateCanvas = () => {
     // 마우스 연결
     function initMouse() {
       mouse = Mouse.create(canvas);
-      mouseConstraint = MouseConstraint.create(engine, {
-        mouse: mouse,
-      });
+      mouseConstraint = MouseConstraint.create(engine, { mouse: mouse });
       Composite.add(engine.world, mouseConstraint);
     }
 
@@ -67,6 +99,38 @@ const RotateCanvas = () => {
       }
     }
 
+    // 이미지 박스 생성
+    function initImageBoxes() {
+      const scale: number = 0.7; // 이미지 축소율
+      const t1: { w: number; h: number } = { w: 250 * scale, h: 250 * scale }; // 이미지 타입별 크기
+      const t2: { w: number; h: number } = { w: 732 * scale, h: 144 * scale };
+
+      addRect(cw / 2, ch / 2, t1.w, t1.h, {
+        chamfer: { radius: 20 },
+        render: { sprite: { texture: IconJS, xScale: scale, yScale: scale } },
+      });
+      addRect(cw / 2 - t1.w, ch / 2, t1.w, t1.h, {
+        chamfer: { radius: 20 },
+        render: { sprite: { texture: IconCSS, xScale: scale, yScale: scale } },
+      });
+      addRect(cw / 2 + t1.w, ch / 2, t1.w, t1.h, {
+        chamfer: { radius: 20 },
+        render: { sprite: { texture: IconHTML, xScale: scale, yScale: scale } },
+      });
+      addRect(cw / 2, ch / 2 + t1.h, t1.w, t1.h, {
+        chamfer: { radius: 20 },
+        render: { sprite: { texture: IconTHREE, xScale: scale, yScale: scale } },
+      });
+      addRect(cw / 2 - t1.w, ch / 2 + t1.h, t1.w, t1.h, {
+        chamfer: { radius: 75 },
+        render: { sprite: { texture: IconREACT, xScale: scale, yScale: scale } },
+      });
+      addRect(cw / 2, ch / 2 - t2.h, t2.w, t2.h, {
+        chamfer: { radius: 20 },
+        render: { sprite: { texture: IconAFRAME, xScale: scale, yScale: scale } },
+      });
+    }
+
     // 사각형 생성
     function addRect(x: number, y: number, w: number, h: number, options = {}) {
       const rect: Matter.Body = Bodies.rectangle(x, y, w, h, options);
@@ -78,17 +142,17 @@ const RotateCanvas = () => {
     <div className="rotate-canvas-wrapper">
       <canvas ref={canvasRef} />
       <aside>
-        <h1>Javascript</h1>
-        <h2>⭐⭐⭐⭐⭐</h2>
-        <p>
-          It is a long established fact that a reader will be distracted by the readable content of
-          a page when looking at its layout. The point of using Lorem Ipsum is that it has a
-          more-or-less normal distribution of letters, as opposed to using 'Content here, content
-          here', making it look like readable English. Many desktop publishing packages and web page
-          editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum'
-          will uncover many web sites still in their infancy. Various versions have evolved over the
-          years, sometimes by accident, sometimes on purpose (injected humour and the like).
-        </p>
+        <h1>{selected.title}</h1>
+        <h2>
+          {Array(5)
+            .fill(null)
+            .map((_: null, i: number) => (
+              <span key={i} style={{ filter: `grayscale(${selected.level <= i ? 1 : 0})` }}>
+                &#11088;
+              </span>
+            ))}
+        </h2>
+        <p>{selected.desc}</p>
       </aside>
     </div>
   );
