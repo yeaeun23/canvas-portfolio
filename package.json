@@ -11,11 +11,13 @@
   "dependencies": {
     "gsap": "^3.11.0",
     "lodash": "^4.17.21",
+    "matter-js": "^0.20.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.13",
+    "@types/matter-js": "^0.19.8",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.9",
     "@vitejs/plugin-react": "^3.0.0",
