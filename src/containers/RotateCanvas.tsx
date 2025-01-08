@@ -50,15 +50,26 @@ const RotateCanvas = () => {
       Composite.add(engine.world, mouseConstraint);
     }
 
-    // 바닥 생성
+    // 그라운드 생성
     function initGround() {
-      const ground: Matter.Body = Bodies.rectangle(cw / 2, ch, cw, 50, { isStatic: true });
-      Composite.add(engine.world, ground);
+      const segments: number = 36; // 바닥 개수
+      const deg: number = (Math.PI * 2) / segments; // 바닥 각도(10˚)
+      const width: number = 50; // 바닥 가로
+      const radius: number = cw / 2 + width / 2; // 그라운드 반지름
+      const height: number = radius * Math.tan(deg / 2) * 2; // 바닥 세로
+
+      for (let i = 0; i < segments; i++) {
+        const theta: number = deg * i; // 기울어진 각도
+        const x: number = radius * Math.cos(theta) + cw / 2; // 바닥 중심 좌표
+        const y: number = radius * Math.sin(theta) + ch / 2;
+
+        addRect(x, y, width, height, { isStatic: true, angle: theta });
+      }
     }
 
     // 사각형 생성
     function addRect(x: number, y: number, w: number, h: number, options = {}) {
-      const rect = Bodies.rectangle(x, y, w, h, options);
+      const rect: Matter.Body = Bodies.rectangle(x, y, w, h, options);
       Composite.add(engine.world, rect);
     }
   }, []);
