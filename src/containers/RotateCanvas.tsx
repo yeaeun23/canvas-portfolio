@@ -67,24 +67,28 @@ const RotateCanvas = () => {
       runner: Runner,
       mouse: Mouse,
       mouseConstraint: MouseConstraint;
+    let observer: IntersectionObserver;
 
     initScene();
     initMouse();
+    initIntersectionObserver();
     initGround();
     initImageBoxes();
 
     // 마우스 클릭 시 데이터 변경
-    Events.on(mouseConstraint, "mousedown", () => {
+    Events.on(mouseConstraint!, "mousedown", () => {
       const newSelected: { title: string; level: number; desc: string } =
         mouseConstraint.body && data[mouseConstraint.body.label];
+
+      // 이미지 박스 클릭 체크(빈 영역 X)
       newSelected && setSelected(newSelected);
     });
 
     // 이미지 박스 회전
-    Events.on(runner, "tick", () => {
+    Events.on(runner!, "tick", () => {
       gravityDeg += 1;
-      engine.world.gravity.x = gravityPower * Math.cos((Math.PI / 180) * gravityDeg); // -1~1
-      engine.world.gravity.y = gravityPower * Math.sin((Math.PI / 180) * gravityDeg); // -1~1
+      engine.gravity.x = gravityPower * Math.cos((Math.PI / 180) * gravityDeg); // -1~1
+      engine.gravity.y = gravityPower * Math.sin((Math.PI / 180) * gravityDeg); // -1~1
     });
 
     function initScene() {
@@ -105,6 +109,30 @@ const RotateCanvas = () => {
       mouse = Mouse.create(canvas);
       mouseConstraint = MouseConstraint.create(engine, { mouse: mouse });
       Composite.add(engine.world, mouseConstraint);
+
+      // 캔버스 위에서도 페이지 스크롤 가능하게
+      canvas.removeEventListener("wheel", mouse.mousewheel);
+      canvas.removeEventListener("DOMMouseScroll", mouse.mousewheel); // Firefox 대응
+    }
+
+    // Observer 생성
+    function initIntersectionObserver() {
+      const options: { threshold: number } = { threshold: 0.1 }; // 10%
+
+      observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+        const canvasEntry: IntersectionObserverEntry = entries[0];
+
+        // 캔버스가 threshold만큼 보이면 실행
+        if (canvasEntry.isIntersecting) {
+          runner.enabled = true;
+          Render.run(render);
+        } else {
+          runner.enabled = false;
+          Render.stop(render);
+        }
+      }, options);
+
+      observer.observe(canvas); // 등록
     }
 
     // 그라운드 생성
@@ -167,6 +195,16 @@ const RotateCanvas = () => {
       const rect: Matter.Body = Bodies.rectangle(x, y, w, h, options);
       Composite.add(engine.world, rect);
     }
+
+    return () => {
+      observer.unobserve(canvas); // observer 해제
+
+      Composite.clear(engine.world, false); // 엔진의 모든 바디 제거(정적 바디 포함)
+      Mouse.clearSourceEvents(mouse); // 마우스 관련 이벤트 제거
+      Runner.stop(runner); // 러너 중지
+      Render.stop(render); // 렌더링 중지
+      Engine.clear(engine); // 엔진 리소스 정리
+    };
   }, []);
 
   return (
