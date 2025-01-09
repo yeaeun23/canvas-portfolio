@@ -111,7 +111,9 @@ const RotateCanvas = () => {
       Composite.add(engine.world, mouseConstraint);
 
       // 캔버스 위에서도 페이지 스크롤 가능하게
+      // @ts-ignore
       canvas.removeEventListener("wheel", mouse.mousewheel);
+      // @ts-ignore
       canvas.removeEventListener("DOMMouseScroll", mouse.mousewheel); // Firefox 대응
     }
 
