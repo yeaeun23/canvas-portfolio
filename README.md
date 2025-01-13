@@ -1,15 +1,10 @@
 # canvas-portfolio
 
-### Demo
+## Demo
 * https://yeaeun23.github.io/canvas-portfolio/
 <br/>
 
-
-### Preview
-<br/>
-
-
-### Reference
+## Reference
 * <b>Vite 시작하기</b>
   * https://ko.vite.dev/guide/
 <br/><br/>
