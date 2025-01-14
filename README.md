@@ -4,6 +4,10 @@
 * https://yeaeun23.github.io/canvas-portfolio/
 <br/>
 
+## Preview
+![2-7 canvas-portfolio](https://github.com/user-attachments/assets/278e4e51-42d3-40e3-a99d-9d16d101aa2a)
+<br/><br/>
+
 ## Reference
 * <b>Vite 시작하기</b>
   * https://ko.vite.dev/guide/
