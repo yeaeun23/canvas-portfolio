@@ -13,10 +13,6 @@
   * https://ko.vite.dev/guide/
 <br/><br/>
 
-* <b>reset.css</b>
-  * https://meyerweb.com/eric/tools/css/reset/
-<br/><br/>
-
 * <b>구글 폰트 - Fjalla One, Noto Sans Korean</b>
   * https://fonts.google.com/
 <br/><br/>
